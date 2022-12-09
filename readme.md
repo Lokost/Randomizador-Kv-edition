@@ -12,4 +12,4 @@ A interface utiliza o Kivy e o SDL2 e para conseguir reproduzir som, a bibliotec
 
 pyinstaller Randomizador.spec
 
-# [Download](/releases)
+# [Download](https://github.com/Lokost/Randomizador-Kv-edition/releases)
