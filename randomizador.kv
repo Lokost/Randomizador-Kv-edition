@@ -1,0 +1,413 @@
+#:kivy 1.0
+
+WindowManager:
+    Inicio:
+    History:
+    Options:
+    Import:
+    Editor:
+
+#Popups
+<AddItem@Popup>:
+    auto_dismiss: False
+    size_hint: .7, None
+    height: 200
+    pos_hint: {'center_x': .5, 'center_y': .5}
+    title: 'Adicionar'
+    background_color: 1, 1, 0, .7
+
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text: 'Digite o item a ser adicionado:'
+            font_size: "15pt"
+        
+        TextInput:
+            id: item
+            hint_text: 'item'
+            size_hint: 1, None
+            height: 40
+            font_size: "15pt"
+            halign: 'center'
+        
+        BoxLayout:
+            orientation:'horizontal'
+            Button:
+                text: 'Adicionar'
+                on_release:
+                    root.adicionar()
+
+            Button:
+                text: 'Cancelar'
+                on_release:
+                    root.dismiss()
+        
+<Alerta@Popup>
+    auto_dismiss: False
+    size_hint: .6, None
+    height: 150
+    pos_hint: {'center_x': .5, 'center_y': .5}
+    title: 'Aviso!'
+
+    on_open:
+        msg.text = root.msg
+
+    BoxLayout:
+        orientation:'vertical'
+
+        Label:
+            id: msg
+            text: ''
+            font_size: "15pt"
+        
+        Button:
+            text: 'OK'
+            on_release:
+                root.dismiss()
+
+# Classes para RecycleView
+<SelectableLabel>:
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 1) if self.selected else (1, 1, 1, 0)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    font_size: "20pt" if self.selected else "15pt"
+    color: (0, 0, 0, 1) if self.selected else (1, 1, 1, 1)
+
+<Lista@RecycleView>:
+    viewclass: 'SelectableLabel'
+
+    SelectableRecycleBoxLayout:
+        orientation: 'vertical'
+        default_size: None, dp(50)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+
+# Telas do aplicativo
+<Inicio@Screen>:
+    name: 'inicio'
+
+    canvas.before:
+        Color:
+            rgba: .5, .03, .05, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    FloatLayout:
+        ActionBar: 
+            pos_hint: {'top': 1, 'center_x': .5}
+            size_hint: 1, None
+            height: 40
+            ActionView:
+                ActionPrevious:
+                    app_icon: ''
+                    title: 'Randomizador'
+                    with_previous: False
+                    icon: None
+                
+                ActionGroup:
+                    text: 'Menu'
+                    mode: 'spinner'
+
+                    ActionButton:
+                        text: 'Abrir lista'
+                        on_release: 
+                            root.manager.current = 'import'
+                            root.manager.transition.direction = 'left'
+
+                    ActionButton:
+                        text: 'Histórico'
+                        on_release: 
+                            root.manager.current = 'history'
+                            root.manager.transition.direction = 'left'
+                    
+                    ActionButton:
+                        text: 'Opções'
+                        on_release:
+                            root.manager.current = 'options'
+                            root.manager.transition.direction = 'left'
+
+                    ActionButton:
+                        text: 'Editor'
+                        on_release:
+                            root.manager.current = 'editor'
+                            root.manager.transition.direction = 'left'
+
+        Label:
+            id: resultado
+            text: 'Lista não carregada!'
+            font_size: "50pt"
+            pos_hint: {'center_y': .55, 'center_x': .5}
+            size_hint: 1, .04
+        
+        Button:
+            id: Random
+            text: 'Randomizar'
+            font_size: "25pt"
+            pos_hint: {'y': .13, 'center_x': .5}
+            size_hint: .4, .1
+            disabled: True
+            on_release: root.random()
+        
+        ToggleButton:
+            id: repeat
+            text:'Repetir resultados'
+            size_hint: .25, .05
+            pos_hint: {'center_x': .5, 'y': .07}
+            font_size: '15pt'
+            on_release: root.repeat()
+
+        Label:
+            id: restantes
+            text: 'itens restantes: 0'
+            font_size: '15pt'
+            pos_hint: {'y': .02, 'center_x': .5}
+            size_hint: 1, .03
+            opacity: .5
+
+<History@Screen>:
+    name: 'history'
+    canvas.before:
+        Color:
+            rgba: 0, 0, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    FloatLayout:
+        ActionBar:
+            pos_hint: {'top': 1, 'center_x': .5}
+            size_hint: 1, None
+            height: 40
+
+            ActionView:
+                ActionPrevious:
+                    app_icon: ''
+                    title: 'Histórico'
+                    with_previous: True
+                    icon: None
+                    on_release: 
+                        root.manager.current = 'inicio'
+                        root.manager.transition.direction = 'right'
+
+        ScrollView:
+            id: scrlv
+            size_hint: .9, .8
+            pos_hint: {'center_x': .5, 'top': .87}
+
+            TextInput:
+                id: history
+                text:'Não há histórico para ser mostrado!'
+                size_hint: 1,None
+                height: max(self.minimum_height, scrlv.height)
+                halign: 'center'
+                disabled: True
+                font_size: "20pt"
+
+<Options@Screen>:
+    name: 'options'
+
+    canvas.before:
+        Color:
+            rgba: .3, .3, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        
+    FloatLayout:
+        ActionBar:
+            size_hint: 1, None
+            height: 40
+            pos_hint: {'top': 1, 'center_x': .5}
+
+            ActionView:
+                ActionPrevious:
+                    title: 'Opções'
+                    app_icon: ''
+                    with_previous: True
+                    on_release:
+                        root.manager.current = 'inicio'
+                        root.manager.transition.direction = 'right'
+
+                ActionButton:
+                    text: 'Salvar'
+                    on_release: root.save()
+
+        ScrollView:
+            id: scrlv
+            size_hint: .5, .9
+            pos_hint: {'center_x': .5, 'center_y': .45}
+            GridLayout:
+                cols: 1
+                size_hint: 1, None
+                height: max(self.minimum_height, scrlv.height)
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint: 1, None
+                    height: 100
+
+                    Label:
+                        text: 'Som personalizado'
+                        font_size: "20pt"
+                    
+                    BoxLayout:
+                        orientation:'horizontal'
+                        spacing: 10
+                        TextInput:
+                            id: som
+                            text_hint: "Caminho do som personalizado"
+                            size_hint: .4, None
+                            height: 40
+                            font_size: "15pt"
+                            multiline: False
+                            halign: 'center'
+
+                        Button:
+                            text:'Procurar'
+                            size_hint: None,None
+                            size: 80, 40
+                            font_size: "15pt"
+                            on_release: root.open_file()
+
+<Import@Screen>:
+    name: 'import'
+
+    canvas.before:
+        Color:
+            rgba: .2, .5, 1, .5
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    FloatLayout:
+        ActionBar:
+            pos_hint: {'top': 1, 'center_x': .5}
+            size_hint: 1, None
+            height: 40
+
+            ActionView:
+                ActionPrevious:
+                    title: 'Importar lista'
+                    app_icon: ''
+                    with_previous: True
+                    on_release:
+                        root.manager.current = 'inicio'
+                        root.manager.transition.direction = 'right'
+
+        Lista:
+            canvas.before:
+                Color:
+                    rgba: .2, .2, .5, .6
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            size_hint: .9, .7
+            pos_hint: {'center_x': .5, 'y': .15}
+            id: listas
+
+        Button:
+            text: 'Carregar'
+            size_hint: .2, .06
+            pos_hint: {'center_x': .5, 'y': .03}
+            on_release: root.get_data()
+
+<Editor@Screen>:
+    name: 'editor'
+    canvas.before:
+        Color:
+            rgba: 1, 1, 0, .3
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    FloatLayout:
+        ActionBar:
+            pos_hint: {'center_x': .5, 'top': 1}
+            size_hint: 1, None
+            height: 40
+            
+            ActionView:
+                ActionPrevious:
+                    title: 'Editor'
+                    app_icon: ''
+                    with_previous: True
+                    on_release:
+                        root.manager.current = 'inicio'
+                        root.manager.transition.direction = 'right'
+
+                ActionButton:
+                    text: 'Abrir lista'
+                    on_release:
+                        root.manager.current = 'import'
+                        root.manager.transition.direction = 'right'
+                
+                ActionButton:
+                    text: 'Salvar'
+                    on_release: root.salvar()
+
+
+        TextInput:
+            id: search
+            size_hint: .6, None
+            height: 35
+            pos_hint: {'center_x': .5, 'top': .9}
+            multiline: False
+            halign: 'center'
+            font_size: "13pt"
+            on_text: root.pesquisa()
+            hint_text: 'Pesquisar'
+            disabled: True
+
+        Lista:
+            id: itens
+            canvas.before:
+                Color:
+                    rgba: 1, 1, .6, .3
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            size_hint: .9, .65
+            pos_hint: {'center_x': .5, 'top': .8}
+        
+        BoxLayout:
+            orientation:'horizontal'
+            spacing: 10
+            size_hint: .7, None
+            height: 50
+            pos_hint: {'center_x': .5, 'y': .05}
+
+            Button:
+                text: 'Adicionar'
+                on_release: root.adicionar()
+                font_size: "15pt"
+            
+            Button:
+                text: 'Remover'
+                on_release: root.deletar()
+                font_size: "15pt"
+            
+        
+        Label:
+            text: 'Atenção, ao sair dessa tela, as modificações serão desfeitas!'
+            color: 1, .5, 1, 1
+            pos_hint: {'center_x': .5, 'y': .0}
+            font_size: "15pt"
+            size_hint: 1, 0.05
+        
+        Label:
+            id: msg
+            text: 'Não há uma lista carregada!'
+            font_size: "25pt"
+            color: 1, 1, 1, 1
+            size_hint: 1, .04
+            pos_hint: {'center_x': .5, 'center_y': .47}
+
+

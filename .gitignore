@@ -1,0 +1,7 @@
+/dist
+/build
+/.vscode
+/__pycache__
+/listas
+teste.py
+opcies.config
