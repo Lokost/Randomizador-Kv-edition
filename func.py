@@ -8,6 +8,20 @@ from fnmatch import filter
 from os.path import join, abspath, dirname
 import sys
 import codecs
+from requests import get, ConnectionError, RequestException
+
+# Excessões
+class ListError(Exception):
+    def __init__(self, text, value):
+        super().__init__(text, value)
+        self._value = value
+    
+    @property
+    def value(self):
+        return self._value
+
+    def __str__(self) -> str:
+        return f'List error -> {self.args[0]} :: {self._value}'
 
 class Func:
     # Listas
@@ -36,7 +50,7 @@ class Func:
             mkdir('listas')
             return []
 
-    def gerar_lista(self, lista: str, online: bool = False) -> list | bool:
+    def gerar_lista(self, lista: str, online: bool = False) -> bool:
         '''Convets the file or text for lists
         lista: path of the text where contains the list.
         online: True - Transforms a loaded online list, False - Transforms the local file choosed'''
@@ -50,14 +64,29 @@ class Func:
                     self.completa = list(dados)
                     self.recentes.clear()
                     print(f'Lista aberta: {lista}')
-                    return self.dados
+                    return True
             
             except FileNotFoundError:
                 return False
 
         else:
-            print('Function not applied')
-            pass
+            try:
+                with open(f'listas/online.json') as arq:
+                    listas = loads(arq.read())
+                    if lista not in listas: 
+                        return False
+                    
+                    onLista = get(listas[lista], timeout=5)
+                    dados = onLista.text.split('\n')
+                    self.dados = list(dados)
+                    self.completa = list(dados)
+                    self.recentes.clear()
+                    print(f'Lista online aberta: {lista}')
+                    return True
+            
+            except (ConnectionError, RequestException):
+                return False
+
 
     def random_choice(
         self, 
@@ -148,6 +177,55 @@ class Func:
         except Exception as e:
             print(str(e))
             return False
+
+    # Online tratament
+    @staticmethod
+    def add_online(info: dict = {'apelido': None, 'url': None}) -> bool:
+        # Verifição de falta de informação
+        for i in info:
+            if info[i] == None:
+                return False
+        
+        # Verificação de se o link é para um raw
+        if not '/raw' in info['url']:
+            return False
+
+        # Teste de conexão
+        try:
+            get(info['url'], timeout=5)
+        except (ConnectionError, ConnectionAbortedError, RequestException):
+            return False
+
+        # Salvamento da lista
+        try:
+            arq = open('listas/online.json', 'r', encoding='utf-8')
+            listas = loads(arq.read())
+
+            if not info['apelido'] in listas:
+                listas[info['apelido']] = info['url']
+                arq = open('listas/online.json', 'w', encoding='utf-8')
+                dump(listas, arq, indent=4, separators=(',', ':'))
+                return True
+            
+            else:
+                return False
+        
+        except FileNotFoundError:
+            arq = open('listas/online.json', 'w', encoding='utf-8')
+            listas = {
+                info['apelido']: info['url']
+            }
+            dump(listas, arq, indent=4, separators=(',', ':'))
+            return True
+
+    @staticmethod
+    def get_online_lists() -> list:
+        try:
+            with open('listas/online.json', encoding='utf-8') as arq:
+                return [x for x in loads(arq.read())]
+        
+        except FileNotFoundError:
+            return []
 
 def resourcePath(relativo) -> str:
     base_path = getattr(sys, '_MEIPASS', dirname(abspath(__file__)))

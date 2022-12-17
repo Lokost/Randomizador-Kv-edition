@@ -6,29 +6,37 @@ WindowManager:
     Options:
     Import:
     Editor:
+    Online:
 
 #Popups
-<AddItem@Popup>:
+<Input@Popup>:
     auto_dismiss: False
-    size_hint: .7, None
+    size_hint: None, None
+    width: 350
     height: 200
     pos_hint: {'center_x': .5, 'center_y': .5}
     title: 'Adicionar'
     background_color: 1, 1, 0, .7
 
+    on_open:
+        msg.text = root.msg
+        item.hint_text = root.hint
+
     BoxLayout:
         orientation:'vertical'
-        Label:
-            text: 'Digite o item a ser adicionado:'
+        Label: 
+            id: msg
             font_size: "15pt"
         
         TextInput:
             id: item
-            hint_text: 'item'
+            focus: True
             size_hint: 1, None
             height: 40
             font_size: "15pt"
             halign: 'center'
+            multiline: False
+            on_text_validate: root.adicionar()
         
         BoxLayout:
             orientation:'horizontal'
@@ -64,6 +72,53 @@ WindowManager:
             text: 'OK'
             on_release:
                 root.dismiss()
+
+<AddOnline@Popup>:
+    auto_dismiss: False
+    size_hint: None, None
+    width: 450
+    height: 200
+    pos_hint: {'center_x': .5, 'center_y': .5}
+    title: 'Adicionar Online'
+
+    BoxLayout:
+        orientation:'vertical'
+
+        Label:
+            id: info
+            text: 'Adicione uma lista online a partir de um RAW'
+            font_size: "15pt"
+
+        TextInput:
+            id: apelido
+            hint_text: 'Apelido'
+            multiline: False
+            height: 20
+            halign: 'center'
+            font_size: "15pt"
+            on_text_validate:
+                url.focus = True
+            
+        TextInput:
+            id: url
+            hint_text: 'URL'
+            multiline: False
+            height: 20
+            halign: 'center'
+            font_size: "15pt"
+            on_text_validate:
+                root.adicionar()
+        
+        BoxLayout:
+            orientation:'horizontal'
+
+            Button:
+                text: 'Adicionar'
+                on_release: root.adicionar()
+            
+            Button:
+                text: 'Cancelar'
+                on_release: root.dismiss()
 
 # Classes para RecycleView
 <SelectableLabel>:
@@ -136,6 +191,12 @@ WindowManager:
                         text: 'Editor'
                         on_release:
                             root.manager.current = 'editor'
+                            root.manager.transition.direction = 'left'
+
+                    ActionButton:
+                        text: 'Online'
+                        on_release:
+                            root.manager.current = 'online'
                             root.manager.transition.direction = 'left'
 
         Label:
@@ -347,6 +408,11 @@ WindowManager:
                     on_release:
                         root.manager.current = 'import'
                         root.manager.transition.direction = 'right'
+
+                ActionButton:
+                    text: 'Nova lista'
+                    on_release:
+                        root.n_lista()
                 
                 ActionButton:
                     text: 'Salvar'
@@ -385,11 +451,13 @@ WindowManager:
             pos_hint: {'center_x': .5, 'y': .05}
 
             Button:
+                id: add
                 text: 'Adicionar'
                 on_release: root.adicionar()
                 font_size: "15pt"
             
             Button:
+                id: rem
                 text: 'Remover'
                 on_release: root.deletar()
                 font_size: "15pt"
@@ -410,4 +478,57 @@ WindowManager:
             size_hint: 1, .04
             pos_hint: {'center_x': .5, 'center_y': .47}
 
+<Online@Screen>:
+    name: 'online'
 
+    on_enter:
+        root.get_data()
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 1, .4, .6, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    
+        ActionBar:
+            pos_hint: {'center_x': .5, 'top': 1}
+            size_hint: 1, None
+            height: 40
+
+            ActionView:
+                ActionPrevious:
+                    with_previous: True
+                    app_icon: ''
+                    title: 'Online'
+                    on_release:
+                        root.manager.current = 'inicio'
+                        root.manager.transition.direction = 'right'
+
+                ActionButton:
+                    text: 'Adicionar'
+                    on_release: root.add_online()
+
+                ActionButton:
+                    text: 'Deletar'
+                    on_release: # TODO: Delete function
+
+        Lista:
+            canvas.before:
+                Color:
+                    rgba: 1, .6, .8, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            id: listas
+            size_hint: .8, .75
+            pos_hint: {'center_x': .5, 'center_y': .5}
+
+        Button:
+            text: 'Carregar'
+            size_hint: .2, .06
+            pos_hint: {'center_x': .5, 'y': .03}
+            on_release: root.get_online()
